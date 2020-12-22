@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        let eventSource = new EventSource("http://localhost:8080/products/streams/966cfb17-5891-43d4-a205-0bc53938a9e4");
+
+        eventSource.onmessage = function (event) {
+            console.log(event);
+            // will log 3 times for the data stream above
+        };
+        eventSource.addEventListener('product update', function (event) {
+            console.log(event);
+        });
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
