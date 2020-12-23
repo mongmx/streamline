@@ -19,6 +19,7 @@ var mu sync.Mutex
 // ProductCache - product cache APIs.
 type ProductCache interface {
 	Store(product *model.Product) error
+	Save(product *model.Product) error
 	GetByID(id uuid.UUID) (model.Product, error)
 	Streams(ctx context.Context, id uuid.UUID, prodChan chan model.Product)
 }
@@ -35,6 +36,21 @@ func NewProductCache(conn redis.Conn) ProductCache {
 }
 
 func (p *productCache) Store(product *model.Product) error {
+	b, err := json.Marshal(product)
+	if err != nil {
+		return err
+	}
+	key := fmt.Sprintf("product-%s", product.ID)
+	_, err = p.Conn.Do("SET", key, string(b))
+	return err
+}
+
+func (p *productCache) Save(product *model.Product) error {
+	prod, err := p.GetByID(product.ID)
+	if err != nil {
+		return err
+	}
+	product.CreatedAt = prod.CreatedAt
 	b, err := json.Marshal(product)
 	if err != nil {
 		return err

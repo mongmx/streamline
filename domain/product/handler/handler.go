@@ -28,7 +28,6 @@ func NewProductHandler(productUseCase usecase.ProductUseCase) *ProductHandler {
 // Store product handler.
 func (p *ProductHandler) Store(c echo.Context) error {
 	payload := struct {
-		ID       string `json:"id,omitempty"`
 		Name     string `json:"name"`
 		Category string `json:"category"`
 		Qty      int    `json:"qty"`
@@ -37,25 +36,43 @@ func (p *ProductHandler) Store(c echo.Context) error {
 		return err
 	}
 	product := model.Product{
+		ID:        uuid.New(),
 		Name:      payload.Name,
 		Category:  payload.Category,
 		Qty:       payload.Qty,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 		DeletedAt: nil,
 	}
-	log.Println(payload)
-	if payload.ID == "" {
-		product.ID = uuid.New()
-		product.CreatedAt = time.Now()
-		product.UpdatedAt = time.Now()
-	} else {
-		id, err := uuid.Parse(payload.ID)
-		if err != nil {
-			return err
-		}
-		product.ID = id
-		product.UpdatedAt = time.Now()
-	}
 	if err := p.ProductUseCase.Store(&product); err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, product)
+}
+
+// Update product handler.
+func (p *ProductHandler) Update(c echo.Context) error {
+	payload := struct {
+		Name     string `json:"name"`
+		Category string `json:"category"`
+		Qty      int    `json:"qty"`
+	}{}
+	if err := c.Bind(&payload); err != nil {
+		return err
+	}
+	productID := c.Param("productId")
+	productUUID, err := uuid.Parse(productID)
+	if err != nil {
+		return err
+	}
+	product := model.Product{
+		ID:        productUUID,
+		Name:      payload.Name,
+		Category:  payload.Category,
+		Qty:       payload.Qty,
+		UpdatedAt: time.Now(),
+	}
+	if err := p.ProductUseCase.Save(&product); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, product)

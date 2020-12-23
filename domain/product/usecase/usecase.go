@@ -10,6 +10,7 @@ import (
 
 type ProductUseCase interface {
 	Store(product *model.Product) error
+	Save(product *model.Product) error
 	StreamProduct(ctx context.Context, id uuid.UUID, prodChan chan model.Product)
 }
 
@@ -25,6 +26,10 @@ func NewProductUseCase(productCache repository.ProductCache) ProductUseCase {
 
 func (p *productUseCase) Store(product *model.Product) error {
 	return p.ProductCache.Store(product)
+}
+
+func (p *productUseCase) Save(product *model.Product) error {
+	return p.ProductCache.Save(product)
 }
 
 func (p *productUseCase) StreamProduct(ctx context.Context, id uuid.UUID, prodChan chan model.Product) {

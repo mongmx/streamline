@@ -30,6 +30,7 @@ func main() {
 	e.Debug = true
 
 	e.POST("/products", productHandler.Store)
+	e.PUT("/products/:productId", productHandler.Update)
 	e.GET("/products/streams/:productId", productHandler.Streams)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", config.Cfg.Port)))
