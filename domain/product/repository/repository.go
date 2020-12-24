@@ -25,11 +25,11 @@ type ProductCache interface {
 }
 
 type productCache struct {
-	Conn redis.Conn
+	Conn *redis.Pool
 }
 
 // NewProductCache is a factory function of product cache.
-func NewProductCache(conn redis.Conn) ProductCache {
+func NewProductCache(conn *redis.Pool) ProductCache {
 	return &productCache{
 		Conn: conn,
 	}
@@ -41,7 +41,8 @@ func (p *productCache) Store(product *model.Product) error {
 		return err
 	}
 	key := fmt.Sprintf("product-%s", product.ID)
-	_, err = p.Conn.Do("SET", key, string(b))
+	c := p.Conn.Get()
+	_, err = c.Do("SET", key, string(b))
 	return err
 }
 
@@ -56,7 +57,8 @@ func (p *productCache) Save(product *model.Product) error {
 		return err
 	}
 	key := fmt.Sprintf("product-%s", product.ID)
-	_, err = p.Conn.Do("SET", key, string(b))
+	c := p.Conn.Get()
+	_, err = c.Do("SET", key, string(b))
 	return err
 }
 
@@ -65,7 +67,8 @@ func (p *productCache) GetByID(id uuid.UUID) (model.Product, error) {
 	defer mu.Unlock()
 
 	key := fmt.Sprintf("product-%s", id)
-	b, err := redis.Bytes(p.Conn.Do("GET", key))
+	c := p.Conn.Get()
+	b, err := redis.Bytes(c.Do("GET", key))
 	if err != nil {
 		log.Println("error: ", err)
 		return model.Product{}, err
@@ -86,10 +89,11 @@ func (p *productCache) Streams(ctx context.Context, id uuid.UUID, prodChan chan 
 		log.Println(err)
 		close(prodChan)
 	}
-	if _, err = conn.Do("CONFIG", "SET", "notify-keyspace-events", "KEA"); err != nil {
+	c := conn.Get()
+	if _, err = c.Do("CONFIG", "SET", "notify-keyspace-events", "KEA"); err != nil {
 		close(prodChan)
 	}
-	psc := redis.PubSubConn{Conn: conn}
+	psc := redis.PubSubConn{Conn: c}
 	key := fmt.Sprintf("product-%s", id)
 	keyspace := fmt.Sprintf("__keyspace@*__:%s", key)
 	if err := psc.PSubscribe(keyspace, "set"); err != nil {

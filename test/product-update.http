@@ -1,8 +1,8 @@
-PUT http://localhost:8080/products/00e9de00-2131-4f5b-b018-39d049092a63 HTTP/1.1
+PUT http://localhost:8080/products/966cfb17-5891-43d4-a205-0bc53938a9e4 HTTP/1.1
 content-type: application/json
 
 {
-    "name": "sample 321",
-    "category": "cate 3",
-    "qty": 0
+    "name": "sample abc",
+    "category": "cate A",
+    "qty": 10
 }

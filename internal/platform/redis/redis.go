@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
@@ -23,20 +24,37 @@ func LoadEnv() Config {
 }
 
 // NewRedis creates new connection to redis and return the connection
-func NewRedis(cfg Config) (redis.Conn, error) {
+func NewRedis(cfg Config) (*redis.Pool, error) {
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
-	conn, err := redis.Dial("tcp", address)
-	if err != nil {
-		return nil, err
+
+	var conn *redis.Pool
+	conn = &redis.Pool{
+		MaxIdle:     3,                 // adjust to your needs
+		IdleTimeout: 240 * time.Second, // adjust to your needs
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", address)
+			if err != nil {
+				return nil, err
+			}
+			if _, err := c.Do("PING"); err != nil {
+				c.Close()
+				return nil, err
+			}
+			return c, err
+		},
 	}
-	pong, err := conn.Do("PING")
-	if err != nil {
-		return nil, err
-	}
-	_, err = redis.String(pong, err)
-	if err != nil {
-		return nil, err
-	}
+	// conn, err := redis.Dial("tcp", address)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// pong, err := conn.Do("PING")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// _, err = redis.String(pong, err)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return conn, nil
 }
 

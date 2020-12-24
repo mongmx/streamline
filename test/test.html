@@ -4,22 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script>
-        let eventSource = new EventSource("http://localhost:8080/products/streams/966cfb17-5891-43d4-a205-0bc53938a9e4");
-
-        eventSource.onmessage = function (event) {
-            console.log(event);
-            // will log 3 times for the data stream above
-        };
-        eventSource.addEventListener('product update', function (event) {
-            console.log(event);
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <title>Alpine and SSE</title>
 </head>
 
 <body>
-
+    <div x-data="dataD()" x-init="mounted()">
+        <p x-show.transition="sseResponse">
+            <p x-text="sseResponse.id"></p>
+            <p x-text="sseResponse.name"></p>
+            <p x-text="sseResponse.category"></p>
+            <p x-text="sseResponse.qty"></p>
+        </p>
+    </div>
+    <script>
+        function dataD() {
+            return {
+                sseResponse: '',
+                mounted() {
+                    const self = this;
+                    const eventSource = new EventSource("http://localhost:8080/products/streams/966cfb17-5891-43d4-a205-0bc53938a9e4");
+                    eventSource.addEventListener('product update', function (event) {
+                        self.sseResponse = JSON.parse(event.data);
+                    });
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
