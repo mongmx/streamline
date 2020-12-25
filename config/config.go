@@ -1,12 +1,12 @@
 package config
 
 import (
-	"strconv"
 	"sync"
 
 	"os"
 
-	"github.com/didiyudha/sse-redis/internal/platform/redis"
+	"github.com/mongmx/sse-redis/config/postgres"
+	"github.com/mongmx/sse-redis/config/redis"
 )
 
 // Cfg is a configuration variable for the app.
@@ -15,24 +15,22 @@ var once sync.Once
 
 // Config is a general configuration.
 type Config struct {
-	Port  int
-	Redis redis.Config
+	Mode     string
+	Port     string
+	Debug    string
+	Postgres postgres.Config
+	Redis    redis.Config
 }
 
 // LoadEnv loads configuration from env variables.
 func LoadEnv() {
 	once.Do(func() {
 		Cfg = Config{
-			Port:  port(),
-			Redis: redis.LoadEnv(),
+			Mode:     os.Getenv("MODE"),
+			Port:     os.Getenv("PORT"),
+			Debug:    os.Getenv("DEBUG"),
+			Postgres: postgres.LoadEnv(),
+			Redis:    redis.LoadEnv(),
 		}
 	})
-}
-
-func port() int {
-	p, err := strconv.Atoi(os.Getenv("PORT"))
-	if err != nil {
-		return 8080
-	}
-	return p
 }

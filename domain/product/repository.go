@@ -1,41 +1,42 @@
-package repository
+package product
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
 
-	"github.com/didiyudha/sse-redis/config"
-	"github.com/didiyudha/sse-redis/domain/product/model"
-	internalredis "github.com/didiyudha/sse-redis/internal/platform/redis"
+	"github.com/mongmx/sse-redis/config"
+	internalredis "github.com/mongmx/sse-redis/config/redis"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
 )
 
 var mu sync.Mutex
 
-// ProductCache - product cache APIs.
-type ProductCache interface {
-	Store(product *model.Product) error
-	Save(product *model.Product) error
-	GetByID(id uuid.UUID) (model.Product, error)
-	Streams(ctx context.Context, id uuid.UUID, prodChan chan model.Product)
+// Repository - product store APIs.
+type Repository interface {
+	Store(product *Product) error
+	Save(product *Product) error
+	GetByID(id uuid.UUID) (Product, error)
+	Streams(ctx context.Context, id uuid.UUID, prodChan chan Product)
 }
 
-type productCache struct {
+type repo struct {
 	Conn *redis.Pool
+	DB *sql.DB
 }
 
-// NewProductCache is a factory function of product cache.
-func NewProductCache(conn *redis.Pool) ProductCache {
-	return &productCache{
+// NewRepository is a factory function of product store.
+func NewRepository(conn *redis.Pool, db *sql.DB) Repository {
+	return &repo{
 		Conn: conn,
 	}
 }
 
-func (p *productCache) Store(product *model.Product) error {
+func (p *repo) Store(product *Product) error {
 	b, err := json.Marshal(product)
 	if err != nil {
 		return err
@@ -46,7 +47,7 @@ func (p *productCache) Store(product *model.Product) error {
 	return err
 }
 
-func (p *productCache) Save(product *model.Product) error {
+func (p *repo) Save(product *Product) error {
 	prod, err := p.GetByID(product.ID)
 	if err != nil {
 		return err
@@ -62,7 +63,7 @@ func (p *productCache) Save(product *model.Product) error {
 	return err
 }
 
-func (p *productCache) GetByID(id uuid.UUID) (model.Product, error) {
+func (p *repo) GetByID(id uuid.UUID) (Product, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -71,19 +72,19 @@ func (p *productCache) GetByID(id uuid.UUID) (model.Product, error) {
 	b, err := redis.Bytes(c.Do("GET", key))
 	if err != nil {
 		log.Println("error: ", err)
-		return model.Product{}, err
+		return Product{}, err
 	}
 	log.Printf("bytes: %s\n", string(b))
-	var product model.Product
+	var product Product
 	if err := json.Unmarshal(b, &product); err != nil {
 		log.Println("error: ", err)
-		return model.Product{}, err
+		return Product{}, err
 	}
 	log.Println("product: ", product)
 	return product, nil
 }
 
-func (p *productCache) Streams(ctx context.Context, id uuid.UUID, prodChan chan model.Product) {
+func (p *repo) Streams(ctx context.Context, id uuid.UUID, prodChan chan Product) {
 	conn, err := internalredis.NewRedis(config.Cfg.Redis)
 	if err != nil {
 		log.Println(err)

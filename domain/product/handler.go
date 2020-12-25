@@ -1,4 +1,4 @@
-package handler
+package product
 
 import (
 	"encoding/json"
@@ -7,26 +7,24 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/didiyudha/sse-redis/domain/product/model"
-	"github.com/didiyudha/sse-redis/domain/product/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-// ProductHandler - HTTP product handler.
-type ProductHandler struct {
-	ProductUseCase usecase.ProductUseCase
+// Handler - HTTP product handler.
+type Handler struct {
+	useCase UseCase
 }
 
-// NewProductHandler - a factory function of product handler.
-func NewProductHandler(productUseCase usecase.ProductUseCase) *ProductHandler {
-	return &ProductHandler{
-		ProductUseCase: productUseCase,
+// NewHandler - a factory function of product handler.
+func NewHandler(useCase UseCase) *Handler {
+	return &Handler{
+		useCase: useCase,
 	}
 }
 
 // Store product handler.
-func (p *ProductHandler) Store(c echo.Context) error {
+func (p *Handler) Store(c echo.Context) error {
 	payload := struct {
 		Name     string `json:"name"`
 		Category string `json:"category"`
@@ -35,7 +33,7 @@ func (p *ProductHandler) Store(c echo.Context) error {
 	if err := c.Bind(&payload); err != nil {
 		return err
 	}
-	product := model.Product{
+	product := Product{
 		ID:        uuid.New(),
 		Name:      payload.Name,
 		Category:  payload.Category,
@@ -44,14 +42,14 @@ func (p *ProductHandler) Store(c echo.Context) error {
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,
 	}
-	if err := p.ProductUseCase.Store(&product); err != nil {
+	if err := p.useCase.Store(&product); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, product)
 }
 
 // Update product handler.
-func (p *ProductHandler) Update(c echo.Context) error {
+func (p *Handler) Update(c echo.Context) error {
 	payload := struct {
 		Name     string `json:"name"`
 		Category string `json:"category"`
@@ -65,30 +63,30 @@ func (p *ProductHandler) Update(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	product := model.Product{
+	product := Product{
 		ID:        productUUID,
 		Name:      payload.Name,
 		Category:  payload.Category,
 		Qty:       payload.Qty,
 		UpdatedAt: time.Now(),
 	}
-	if err := p.ProductUseCase.Save(&product); err != nil {
+	if err := p.useCase.Save(&product); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, product)
 }
 
 // Streams a product update.
-func (p *ProductHandler) Streams(c echo.Context) error {
+func (p *Handler) Streams(c echo.Context) error {
 	productID := c.Param("productId")
 	productUUID, err := uuid.Parse(productID)
 	if err != nil {
 		return err
 	}
 	ctx := c.Request().Context()
-	prodChan := make(chan model.Product, 1)
+	prodChan := make(chan Product, 1)
 
-	go p.ProductUseCase.StreamProduct(ctx, productUUID, prodChan)
+	go p.useCase.StreamProduct(ctx, productUUID, prodChan)
 
 	// c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.Response().Header().Set("Content-Type", "text/event-stream")

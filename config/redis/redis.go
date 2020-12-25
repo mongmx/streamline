@@ -12,58 +12,42 @@ import (
 // Config redis.
 type Config struct {
 	Host string
-	Port int
+	Port string
 }
 
 // LoadEnv - load configuration from env.
 func LoadEnv() Config {
 	return Config{
 		Host: os.Getenv("REDIS_HOST"),
-		Port: port(),
+		Port: os.Getenv("REDIS_PORT"),
 	}
 }
 
 // NewRedis creates new connection to redis and return the connection
 func NewRedis(cfg Config) (*redis.Pool, error) {
-	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
-
-	var conn *redis.Pool
-	conn = &redis.Pool{
+	address := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+	pool := &redis.Pool{
 		MaxIdle:     3,                 // adjust to your needs
 		IdleTimeout: 240 * time.Second, // adjust to your needs
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", address)
+			conn, err := redis.Dial("tcp", address)
 			if err != nil {
 				return nil, err
 			}
-			if _, err := c.Do("PING"); err != nil {
-				c.Close()
+			pong, err := conn.Do("PING"); 
+			if err != nil {
+				conn.Close()
 				return nil, err
 			}
-			return c, err
+			_, err = redis.String(pong, err)
+			if err != nil {
+				conn.Close()
+				return nil, err
+			}
+			return conn, nil
 		},
 	}
-	// conn, err := redis.Dial("tcp", address)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// pong, err := conn.Do("PING")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// _, err = redis.String(pong, err)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return conn, nil
-}
-
-func port() int {
-	p, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
-	if err != nil {
-		return 6379
-	}
-	return p
+	return pool, nil
 }
 
 func db() int {
