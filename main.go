@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/mongmx/sse-redis/domain/admin"
 	"golang.org/x/sync/errgroup"
 
@@ -130,9 +129,11 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 		return echo.ErrNotFound
 	})
 
-	r := mux.NewRouter()
-	r.HandleFunc("/admin", adminHandler.Index).Methods("GET").Name("admin.index")
-	e.GET("/admin", echo.WrapHandler(r.GetRoute("admin.index").GetHandler()))
+	// r := mux.NewRouter()
+	// r.HandleFunc("/admin", adminHandler.Index).Methods("GET").Name("admin.index")
+	// e.GET("/admin", echo.WrapHandler(r.GetRoute("admin.index").GetHandler()))
+
+	e.GET("/admin", echo.WrapHandler(adminHandler.Index()))
 
 	return e
 }

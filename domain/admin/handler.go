@@ -16,9 +16,13 @@ func NewHandler() *Handler {
 }
 
 // Index product handler.
-func (p *Handler) Index(w http.ResponseWriter, r *http.Request) {
-	_, err := t.ViewTestPage(w)
-	if err != nil {
-		log.Println(err)
-	}
+func (p *Handler) Index() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, err := t.ViewTestPage(w)
+		if err != nil {
+			log.Println(err)
+		}
+	})
+	return mux
 }
