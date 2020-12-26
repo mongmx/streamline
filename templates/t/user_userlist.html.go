@@ -16,7 +16,7 @@ func ViewUserList(userList []string, buffer *bytes.Buffer) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alpine SSE</title>
+    <title>Real-time Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="./public/css/tailwind.output.css" />

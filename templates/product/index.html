@@ -1,0 +1,32 @@
+<%: func ViewProductIndexPage(w io.Writer) (int, error)%>
+
+<%~ "layout/index.html" %>
+
+<%@ body { %>
+    Product Update
+    <div x-data="dataD()" x-init="mounted()">
+        <p x-show.transition="sseResponse">
+            <p x-text="sseResponse.id"></p>
+            <p x-text="sseResponse.name"></p>
+            <p x-text="sseResponse.category"></p>
+            <p x-text="sseResponse.qty"></p>
+        </p>
+    </div>
+<% } %>
+
+<%@ script { %>
+    <script>
+        function dataD() {
+            return {
+                sseResponse: '',
+                mounted() {
+                    const self = this;
+                    const eventSource = new EventSource("http://localhost:8080/products/streams/966cfb17-5891-43d4-a205-0bc53938a9e4");
+                    eventSource.addEventListener('product update', function (event) {
+                        self.sseResponse = JSON.parse(event.data);
+                    });
+                }
+            }
+        }
+    </script>
+<% } %>
