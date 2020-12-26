@@ -119,6 +119,8 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 
 	adminHandler := admin.NewHandler()
 
+	e.Static("/public", "public")
+
 	e.POST("/products", productHandler.Store)
 	e.PUT("/products/:productId", productHandler.Update)
 	e.GET("/products/streams/:productId", productHandler.Streams)
