@@ -27,10 +27,10 @@ func LoadEnv() Config {
 		Port:    os.Getenv("POSTGRES_PORT"),
 		User:    os.Getenv("POSTGRES_USER"),
 		Pass:    os.Getenv("POSTGRES_PASS"),
-		DBName:  os.Getenv("POSTGRES_PORT"),
+		DBName:  os.Getenv("POSTGRES_DB"),
 		SSL:     os.Getenv("POSTGRES_SSL"),
-		SSLCert: os.Getenv("POSTGRES_SSL"),
-		SSLKey:  os.Getenv("POSTGRES_SSL"),
+		SSLCert: os.Getenv("POSTGRES_SSL_CERT"),
+		SSLKey:  os.Getenv("POSTGRES_SSL_KEY"),
 	}
 }
 

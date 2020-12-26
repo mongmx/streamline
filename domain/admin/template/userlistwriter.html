@@ -1,0 +1,11 @@
+<%: func ViewUserListToWriter(userList []string, w io.Writer) (int, error)%>
+
+<%~ "layout/index.html" %>
+
+<%@ body { %>
+    <% for _, user := range userList { %>
+        <ul>
+            <%+ "user.html" %>
+        </ul>
+    <% } %>
+<% } %>
