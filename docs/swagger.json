@@ -1,10 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "{{.Description}}",
         "title": "SSE Hub API",
         "contact": {},
-        "license": {},
         "version": "1.0"
     },
     "host": "localhost:8080",

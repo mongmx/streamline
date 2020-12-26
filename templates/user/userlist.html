@@ -1,0 +1,11 @@
+<%: func ViewUserList(userList []string, buffer *bytes.Buffer) %>
+
+<%~ "layout/index.html" %>
+
+<%@ body { %>
+    <% for _, user := range userList { %>
+        <ul>
+            <%+ "user/user.html" %>
+        </ul>
+    <% } %>
+<% } %>

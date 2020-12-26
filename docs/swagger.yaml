@@ -2,8 +2,6 @@ basePath: /api
 host: localhost:8080
 info:
   contact: {}
-  description: '{{.Description}}'
-  license: {}
   title: SSE Hub API
   version: "1.0"
 paths: {}
