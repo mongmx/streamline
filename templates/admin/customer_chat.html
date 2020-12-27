@@ -1,0 +1,40 @@
+<%: func ViewCustomerChatPage(buffer *bytes.Buffer) %>
+
+<%~ "layout/index.html" %>
+
+<%@ header { %>
+    Customer Chat
+<% } %>
+
+<%@ body { %>
+    <div x-data="dataD()" x-init="mounted()">
+        <p x-show.transition="customer">
+            <p x-text="customer.name" class="font-semibold text-gray-700 dark:text-gray-200"></p>
+        </p>
+        <div x-html="chat" class="font-semibold text-gray-700 dark:text-gray-200"></div>
+    </div>
+<% } %>
+
+<%@ script { %>
+    <script>
+        function dataD() {
+            const urlSegments = location.pathname.split('/');
+            return {
+                customer: {id: urlSegments[urlSegments.length-1]},
+                chat: "",
+                mounted() {
+                    const self = this;
+                    const eventSource = new EventSource('http://localhost:8080/api/customer/streams/'+ this.customer.id);
+                    eventSource.addEventListener('customer chat', function (event) {
+                        data = JSON.parse(event.data);
+                        self.chat = self.chat + '<br>' + data.message;
+                    });
+
+                    fetch('http://localhost:8080/api/customer/' + this.customer.id)
+                        .then(response => response.json())
+                        .then(data => this.customer = data)
+                }
+            }
+        }
+    </script>
+<% } %>

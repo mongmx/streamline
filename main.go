@@ -117,7 +117,7 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	productUseCase := product.NewUseCase(productRepo)
 	productHandler := product.NewHandler(productUseCase)
 
-	customerRepo := customer.NewRepository(postgresDB)
+	customerRepo := customer.NewRepository(postgresDB, redisConn)
 	customerUseCase := customer.NewUseCase(customerRepo)
 	customerHandler := customer.NewHandler(customerUseCase)
 
@@ -125,8 +125,10 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 
 	e.Static("/public", "public")
 
-	e.GET("/customers", customerHandler.List)
-	e.POST("/customer", customerHandler.Create)
+	e.GET("/api/customers", customerHandler.List)
+	e.GET("/api/customer/:customerId", customerHandler.View)
+	e.GET("/api/customer/streams/:customerId", customerHandler.Streams)
+	e.POST("/api/customer", customerHandler.Create)
 
 	e.POST("/products", productHandler.Store)
 	e.PUT("/products/:productId", productHandler.Update)
@@ -135,6 +137,7 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	e.GET("/admin", adminHandler.IndexPage)
 	e.GET("/admin/list", adminHandler.ListPage)
 	e.GET("/admin/customer/list", adminHandler.CustomerListPage)
+	e.GET("/admin/customer/chat/:customerID", adminHandler.CustomerChatPage)
 	//e.GET("/admin/products/:productId", adminHandler.ProductPage)
 
 	e.GET("/metrics", func(c echo.Context) error {

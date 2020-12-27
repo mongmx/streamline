@@ -35,3 +35,10 @@ func (h *Handler) CustomerListPage(c echo.Context) error {
 	t.ViewCustomerListPage(b)
 	return c.Stream(http.StatusOK, echo.MIMETextHTMLCharsetUTF8, b)
 }
+
+// CustomerChatPage admin ui handler.
+func (h *Handler) CustomerChatPage(c echo.Context) error {
+	b := new(bytes.Buffer)
+	t.ViewCustomerChatPage(b)
+	return c.Stream(http.StatusOK, echo.MIMETextHTMLCharsetUTF8, b)
+}

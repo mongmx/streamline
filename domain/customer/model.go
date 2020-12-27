@@ -7,3 +7,7 @@ type Customer struct {
 	UUID uuid.UUID `json:"id"`
 	Name string    `json:"name"`
 }
+
+type ChatMessage struct {
+	Message string `json:"message"`
+}
