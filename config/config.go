@@ -5,8 +5,8 @@ import (
 
 	"os"
 
-	"github.com/mongmx/sse-redis/config/postgres"
-	"github.com/mongmx/sse-redis/config/redis"
+	"github.com/mongmx/streamline/config/postgres"
+	"github.com/mongmx/streamline/config/redis"
 )
 
 // Cfg is a configuration variable for the app.

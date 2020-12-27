@@ -1,10 +1,10 @@
 package admin
 
 import (
-	"log"
+	"bytes"
+	"github.com/labstack/echo/v4"
+	"github.com/mongmx/streamline/templates/t"
 	"net/http"
-
-	"github.com/mongmx/sse-redis/templates/t"
 )
 
 // Handler - HTTP product handler.
@@ -15,14 +15,16 @@ func NewHandler() *Handler {
 	return &Handler{}
 }
 
-// Index product handler.
-func (p *Handler) Index() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, err := t.ViewTestPage(w)
-		if err != nil {
-			log.Println(err)
-		}
-	})
-	return mux
+// IndexPageHandler product ui handler.
+func (p *Handler) IndexPage(c echo.Context) error {
+	b := new(bytes.Buffer)
+	t.ViewTestPage(b)
+	return c.Stream(http.StatusOK, echo.MIMETextHTMLCharsetUTF8, b)
+}
+
+// ListPageHandler product ui handler.
+func (p *Handler) ListPage(c echo.Context) error {
+	b := new(bytes.Buffer)
+	t.ViewListPage(b)
+	return c.Stream(http.StatusOK, echo.MIMETextHTMLCharsetUTF8, b)
 }

@@ -9,18 +9,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mongmx/sse-redis/domain/admin"
+	"github.com/mongmx/streamline/domain/admin"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/mongmx/sse-redis/config"
-	"github.com/mongmx/sse-redis/config/postgres"
-	"github.com/mongmx/sse-redis/config/redis"
-	_ "github.com/mongmx/sse-redis/docs"
-	"github.com/mongmx/sse-redis/domain/product"
+	"github.com/mongmx/streamline/config"
+	"github.com/mongmx/streamline/config/postgres"
+	"github.com/mongmx/streamline/config/redis"
+	_ "github.com/mongmx/streamline/docs"
+	"github.com/mongmx/streamline/domain/product"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
@@ -124,16 +124,14 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	e.PUT("/products/:productId", productHandler.Update)
 	e.GET("/products/streams/:productId", productHandler.Streams)
 
+	e.GET("/admin", adminHandler.IndexPage)
+	e.GET("/admin/list", adminHandler.ListPage)
+	//e.GET("/admin/products/:productId", adminHandler.ProductPage)
+
 	e.GET("/metrics", func(c echo.Context) error {
-		e.Logger.Debug(e.Debug)
+		//e.Logger.Debug(e.Debug)
 		return echo.ErrNotFound
 	})
-
-	// r := mux.NewRouter()
-	// r.HandleFunc("/admin", adminHandler.Index).Methods("GET").Name("admin.index")
-	// e.GET("/admin", echo.WrapHandler(r.GetRoute("admin.index").GetHandler()))
-
-	e.GET("/admin", echo.WrapHandler(adminHandler.Index()))
 
 	return e
 }

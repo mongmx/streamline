@@ -1,9 +1,9 @@
-<%: func ViewTestPage(buffer *bytes.Buffer) %>
+<%: func ViewListPage(buffer *bytes.Buffer) %>
 
 <%~ "layout/index.html" %>
 
 <%@ body { %>
-    Test Page Product Update
+    Admin List Page
     <div x-data="dataD()" x-init="mounted()">
         <p x-show.transition="sseResponse">
             <p x-text="sseResponse.id"></p>

@@ -8,10 +8,10 @@ import (
 	"log"
 	"sync"
 
-	"github.com/mongmx/sse-redis/config"
-	internalredis "github.com/mongmx/sse-redis/config/redis"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
+	"github.com/mongmx/streamline/config"
+	internalredis "github.com/mongmx/streamline/config/redis"
 )
 
 var mu sync.Mutex
@@ -26,7 +26,7 @@ type Repository interface {
 
 type repo struct {
 	Conn *redis.Pool
-	DB *sql.DB
+	DB   *sql.DB
 }
 
 // NewRepository is a factory function of product store.

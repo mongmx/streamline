@@ -1,0 +1,22 @@
+<%: func ViewCustomerCreatePage(buffer *bytes.Buffer) %>
+
+<%~ "layout/index.html" %>
+
+<%@ body { %>
+    Customer Create
+    <div x-data="dataD()">
+        <p x-show.transition="customers">
+            <p x-text="customers.name"></p>
+        </p>
+    </div>
+<% } %>
+
+<%@ script { %>
+    <script>
+        function dataD() {
+            return {
+                customer: '',
+            }
+        }
+    </script>
+<% } %>
