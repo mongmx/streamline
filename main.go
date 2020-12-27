@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/mongmx/streamline/domain/customer"
 	"log"
 	"net/http"
 	"os"
@@ -116,9 +117,16 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	productUseCase := product.NewUseCase(productRepo)
 	productHandler := product.NewHandler(productUseCase)
 
+	customerRepo := customer.NewRepository(postgresDB)
+	customerUseCase := customer.NewUseCase(customerRepo)
+	customerHandler := customer.NewHandler(customerUseCase)
+
 	adminHandler := admin.NewHandler()
 
 	e.Static("/public", "public")
+
+	e.GET("/customers", customerHandler.List)
+	e.POST("/customer", customerHandler.Create)
 
 	e.POST("/products", productHandler.Store)
 	e.PUT("/products/:productId", productHandler.Update)
@@ -126,6 +134,7 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 
 	e.GET("/admin", adminHandler.IndexPage)
 	e.GET("/admin/list", adminHandler.ListPage)
+	e.GET("/admin/customer/list", adminHandler.CustomerListPage)
 	//e.GET("/admin/products/:productId", adminHandler.ProductPage)
 
 	e.GET("/metrics", func(c echo.Context) error {

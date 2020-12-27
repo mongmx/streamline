@@ -24,14 +24,14 @@ func NewUseCase(repo Repository) UseCase {
 	}
 }
 
-func (p *useCase) Store(product *Product) error {
-	return p.repo.Store(product)
+func (u *useCase) Store(product *Product) error {
+	return u.repo.Store(product)
 }
 
-func (p *useCase) Save(product *Product) error {
-	return p.repo.Save(product)
+func (u *useCase) Save(product *Product) error {
+	return u.repo.Save(product)
 }
 
-func (p *useCase) StreamProduct(ctx context.Context, id uuid.UUID, prodChan chan Product) {
-	p.repo.Streams(ctx, id, prodChan)
+func (u *useCase) StreamProduct(ctx context.Context, id uuid.UUID, prodChan chan Product) {
+	u.repo.Streams(ctx, id, prodChan)
 }

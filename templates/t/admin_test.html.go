@@ -509,7 +509,8 @@ func ViewTestPage(buffer *bytes.Buffer) {
             <main class="h-full overflow-y-auto">
                 <div class="container grid px-6 mx-auto">
                     <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
-                        Server-Sent Event
+                        `)
+	buffer.WriteString(`
                     </h2>
                     <p class="font-semibold text-gray-700 dark:text-gray-200">
                         `)

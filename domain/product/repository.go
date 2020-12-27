@@ -36,19 +36,19 @@ func NewRepository(conn *redis.Pool, db *sql.DB) Repository {
 	}
 }
 
-func (p *repo) Store(product *Product) error {
+func (r *repo) Store(product *Product) error {
 	b, err := json.Marshal(product)
 	if err != nil {
 		return err
 	}
 	key := fmt.Sprintf("product-%s", product.ID)
-	c := p.Conn.Get()
+	c := r.Conn.Get()
 	_, err = c.Do("SET", key, string(b))
 	return err
 }
 
-func (p *repo) Save(product *Product) error {
-	prod, err := p.GetByID(product.ID)
+func (r *repo) Save(product *Product) error {
+	prod, err := r.GetByID(product.ID)
 	if err != nil {
 		return err
 	}
@@ -58,17 +58,17 @@ func (p *repo) Save(product *Product) error {
 		return err
 	}
 	key := fmt.Sprintf("product-%s", product.ID)
-	c := p.Conn.Get()
+	c := r.Conn.Get()
 	_, err = c.Do("SET", key, string(b))
 	return err
 }
 
-func (p *repo) GetByID(id uuid.UUID) (Product, error) {
+func (r *repo) GetByID(id uuid.UUID) (Product, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
 	key := fmt.Sprintf("product-%s", id)
-	c := p.Conn.Get()
+	c := r.Conn.Get()
 	b, err := redis.Bytes(c.Do("GET", key))
 	if err != nil {
 		log.Println("error: ", err)
@@ -84,7 +84,7 @@ func (p *repo) GetByID(id uuid.UUID) (Product, error) {
 	return product, nil
 }
 
-func (p *repo) Streams(ctx context.Context, id uuid.UUID, prodChan chan Product) {
+func (r *repo) Streams(ctx context.Context, id uuid.UUID, prodChan chan Product) {
 	conn, err := internalredis.NewRedis(config.Cfg.Redis)
 	if err != nil {
 		log.Println(err)
@@ -105,7 +105,7 @@ func (p *repo) Streams(ctx context.Context, id uuid.UUID, prodChan chan Product)
 		switch m := psc.Receive().(type) {
 		case redis.Message:
 			log.Printf("message: %v\n", m)
-			prod, err := p.GetByID(id)
+			prod, err := r.GetByID(id)
 			if err != nil {
 				close(prodChan)
 				return

@@ -2,8 +2,11 @@
 
 <%~ "layout/index.html" %>
 
-<%@ body { %>
+<%@ header { %>
     Customer Create
+<% } %>
+
+<%@ body { %>
     <div x-data="dataD()">
         <p x-show.transition="customers">
             <p x-text="customers.name"></p>

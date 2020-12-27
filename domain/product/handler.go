@@ -24,7 +24,7 @@ func NewHandler(useCase UseCase) *Handler {
 }
 
 // Store product handler.
-func (p *Handler) Store(c echo.Context) error {
+func (h *Handler) Store(c echo.Context) error {
 	payload := struct {
 		Name     string `json:"name"`
 		Category string `json:"category"`
@@ -42,14 +42,14 @@ func (p *Handler) Store(c echo.Context) error {
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,
 	}
-	if err := p.useCase.Store(&product); err != nil {
+	if err := h.useCase.Store(&product); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, product)
 }
 
 // Update product handler.
-func (p *Handler) Update(c echo.Context) error {
+func (h *Handler) Update(c echo.Context) error {
 	payload := struct {
 		Name     string `json:"name"`
 		Category string `json:"category"`
@@ -70,14 +70,14 @@ func (p *Handler) Update(c echo.Context) error {
 		Qty:       payload.Qty,
 		UpdatedAt: time.Now(),
 	}
-	if err := p.useCase.Save(&product); err != nil {
+	if err := h.useCase.Save(&product); err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, product)
 }
 
 // Streams a product update.
-func (p *Handler) Streams(c echo.Context) error {
+func (h *Handler) Streams(c echo.Context) error {
 	productID := c.Param("productId")
 	productUUID, err := uuid.Parse(productID)
 	if err != nil {
@@ -86,9 +86,8 @@ func (p *Handler) Streams(c echo.Context) error {
 	ctx := c.Request().Context()
 	prodChan := make(chan Product, 1)
 
-	go p.useCase.StreamProduct(ctx, productUUID, prodChan)
+	go h.useCase.StreamProduct(ctx, productUUID, prodChan)
 
-	// c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	c.Response().Header().Set("Content-Type", "text/event-stream")
 	c.Response().Header().Set("Cache-Control", "no-cache")
 	c.Response().Header().Set("Connection", "keep-alive")
@@ -101,7 +100,7 @@ func (p *Handler) Streams(c echo.Context) error {
 		return nil
 	default:
 		for p := range prodChan {
-			log.Printf("product p: %+v\n", p)
+			log.Printf("product h: %+v\n", p)
 			if err := enc.Encode(p); err != nil {
 				return err
 			}
