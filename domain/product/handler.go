@@ -2,9 +2,9 @@ package product
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -104,16 +104,26 @@ func (h *Handler) Streams(c echo.Context) error {
 			if err := enc.Encode(p); err != nil {
 				return err
 			}
-			// var w string
-			// fmt.Sprintf(w, "data: %s\n\n", "xxxxxxxxx")
 			b, err := json.Marshal(p)
 			if err != nil {
 				return err
 			}
-			str := fmt.Sprintf("id: 1\nevent: product update\ndata: %s\n\n", b)
-			c.Response().Write([]byte(str))
+			b = formatSSE("product update", string(b))
+			_, err = c.Response().Write(b)
+			if err != nil {
+				return err
+			}
 			c.Response().Flush()
 		}
 	}
 	return nil
+}
+
+func formatSSE(event string, data string) []byte {
+	eventPayload := "event: " + event + "\n"
+	dataLines := strings.Split(data, "\n")
+	for _, line := range dataLines {
+		eventPayload = eventPayload + "data: " + line + "\n"
+	}
+	return []byte(eventPayload + "\n")
 }

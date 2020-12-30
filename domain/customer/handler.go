@@ -2,10 +2,10 @@ package customer
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 // Handler - HTTP customer handler.
@@ -67,7 +67,6 @@ func (h *Handler) Streams(c echo.Context) error {
 		return nil
 	default:
 		for cc := range chatChan {
-			//log.Printf("product h: %+v\n", cc)
 			if err := enc.Encode(cc); err != nil {
 				return err
 			}
@@ -75,8 +74,11 @@ func (h *Handler) Streams(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			str := fmt.Sprintf("id: 1\nevent: customer chat\ndata: %s\n\n", b)
-			_, _ = c.Response().Write([]byte(str))
+			b = formatSSE("customer chat", string(b))
+			_, err = c.Response().Write(b)
+			if err != nil {
+				return err
+			}
 			c.Response().Flush()
 		}
 	}
@@ -101,4 +103,13 @@ func (h *Handler) Create(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, customer)
+}
+
+func formatSSE(event string, data string) []byte {
+	eventPayload := "event: " + event + "\n"
+	dataLines := strings.Split(data, "\n")
+	for _, line := range dataLines {
+		eventPayload = eventPayload + "data: " + line + "\n"
+	}
+	return []byte(eventPayload + "\n")
 }
