@@ -1,0 +1,19 @@
+
+-- +migrate Up
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE SCHEMA IF NOT EXISTS iam;
+CREATE TABLE iam.users (
+	id BIGSERIAL PRIMARY KEY,
+	uuid UUID DEFAULT uuid_generate_v4(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	deleted_at TIMESTAMP NULL,
+    email VARCHAR NOT NULL DEFAULT '',
+	is_banned BOOLEAN NOT NULL DEFAULT FALSE,
+    price NUMERIC NOT NULL DEFAULT 0,
+    note TEXT NOT NULL DEFAULT '',
+    plan_id BIGINT NOT NULL DEFAULT 0
+);
+
+-- +migrate Down
+DROP TABLE iam.users;

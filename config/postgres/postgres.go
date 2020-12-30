@@ -3,9 +3,8 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	migrate "github.com/rubenv/sql-migrate"
 	"os"
-
-	_ "github.com/lib/pq"
 )
 
 // Config redis.
@@ -35,10 +34,28 @@ func LoadEnv() Config {
 }
 
 // NewPostgres creates new connection to postgres and return the connection
-func NewPostgres(cfg Config) (*sql.DB, error) {
-	conn := fmt.Sprintf(
+func NewPostgres(cfg Config) string {
+	if cfg.Pass == "" {
+		return fmt.Sprintf(
+			"host=%s port=%s dbname=%s user=%s sslmode=%s",
+			cfg.Host, cfg.Port, cfg.DBName, cfg.User, cfg.SSL,
+		)
+	}
+	return fmt.Sprintf(
 		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.DBName, cfg.User, cfg.Pass, cfg.SSL,
 	)
-	return sql.Open("postgres", conn)
+}
+
+// MigrateUp call migration up
+func MigrateUp(db *sql.DB) error {
+	migrations := &migrate.FileMigrationSource{
+		Dir: "migrations/postgres",
+	}
+	n, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Applied %d migrations!\n", n)
+	return nil
 }

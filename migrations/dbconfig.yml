@@ -1,0 +1,5 @@
+development:
+  dialect: postgres
+  datasource: streamline
+  dir: postgres
+  table: migrations

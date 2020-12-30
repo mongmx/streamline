@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/mongmx/streamline/domain/customer"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -10,19 +10,20 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mongmx/streamline/domain/admin"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/prometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/lib/pq"
 	"github.com/mongmx/streamline/config"
 	"github.com/mongmx/streamline/config/postgres"
 	"github.com/mongmx/streamline/config/redis"
 	_ "github.com/mongmx/streamline/docs"
+	"github.com/mongmx/streamline/domain/admin"
+	"github.com/mongmx/streamline/domain/customer"
 	"github.com/mongmx/streamline/domain/product"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"golang.org/x/sync/errgroup"
 )
 
 // @title SSE Hub API
@@ -91,7 +92,12 @@ func metricsInstance() *echo.Echo {
 }
 
 func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
-	postgresDB, err := postgres.NewPostgres(config.Cfg.Postgres)
+	dsn := postgres.NewPostgres(config.Cfg.Postgres)
+	postgresDB, err := sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = postgres.MigrateUp(postgresDB)
 	if err != nil {
 		log.Fatal(err)
 	}
