@@ -2,11 +2,11 @@ package customer
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/mongmx/streamline/config"
 	internalRedis "github.com/mongmx/streamline/config/redis"
 	"log"
@@ -24,12 +24,12 @@ type Repository interface {
 }
 
 type repo struct {
-	DB        *sql.DB
+	DB        *sqlx.DB
 	RedisPool *redis.Pool
 }
 
 // NewRepository is a factory function of customer store.
-func NewRepository(db *sql.DB, pool *redis.Pool) Repository {
+func NewRepository(db *sqlx.DB, pool *redis.Pool) Repository {
 	return &repo{
 		DB:        db,
 		RedisPool: pool,

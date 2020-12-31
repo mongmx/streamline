@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	migrate "github.com/rubenv/sql-migrate"
+	"log"
 	"os"
 )
 
@@ -48,7 +49,11 @@ func NewPostgres(cfg Config) string {
 }
 
 // MigrateUp call migration up
-func MigrateUp(db *sql.DB) error {
+func MigrateUp(dsn string) error {
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
 	migrations := &migrate.FileMigrationSource{
 		Dir: "migrations/postgres",
 	}

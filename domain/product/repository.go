@@ -2,9 +2,9 @@ package product
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"log"
 	"sync"
 
@@ -26,11 +26,11 @@ type Repository interface {
 
 type repo struct {
 	Conn *redis.Pool
-	DB   *sql.DB
+	DB   *sqlx.DB
 }
 
 // NewRepository is a factory function of product store.
-func NewRepository(conn *redis.Pool, db *sql.DB) Repository {
+func NewRepository(conn *redis.Pool, db *sqlx.DB) Repository {
 	return &repo{
 		Conn: conn,
 	}

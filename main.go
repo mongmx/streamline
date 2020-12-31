@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"github.com/jmoiron/sqlx"
+	"github.com/mongmx/streamline/domain/auth"
 	"log"
 	"net/http"
 	"os"
@@ -93,15 +94,15 @@ func metricsInstance() *echo.Echo {
 
 func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	dsn := postgres.NewPostgres(config.Cfg.Postgres)
-	postgresDB, err := sql.Open("postgres", dsn)
+	postgresDB, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = postgres.MigrateUp(postgresDB)
+	err = postgres.MigrateUp(dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	redisConn, err := redis.NewRedis(config.Cfg.Redis)
+	redisPool, err := redis.NewRedis(config.Cfg.Redis)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -119,17 +120,23 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	p.Use(e)
 	p.SetMetricsPath(routerMetrics)
 
-	productRepo := product.NewRepository(redisConn, postgresDB)
+	authRepo := auth.NewRepository(postgresDB, redisPool)
+	authUseCase := auth.NewUseCase(authRepo)
+	authHandler := auth.NewHandler(authUseCase)
+
+	productRepo := product.NewRepository(redisPool, postgresDB)
 	productUseCase := product.NewUseCase(productRepo)
 	productHandler := product.NewHandler(productUseCase)
 
-	customerRepo := customer.NewRepository(postgresDB, redisConn)
+	customerRepo := customer.NewRepository(postgresDB, redisPool)
 	customerUseCase := customer.NewUseCase(customerRepo)
 	customerHandler := customer.NewHandler(customerUseCase)
 
 	adminHandler := admin.NewHandler()
 
 	e.Static("/public", "public")
+
+	e.POST("/api/auth/register", authHandler.Register)
 
 	e.GET("/api/customers", customerHandler.List)
 	e.GET("/api/customer/:customerId", customerHandler.View)
