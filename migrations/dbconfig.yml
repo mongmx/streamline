@@ -3,3 +3,8 @@ development:
   datasource: streamline
   dir: postgres
   table: migrations
+
+localhost:
+  dialect: postgres
+  datasource: host=127.0.0.1 dbname=streamline user=mongmx sslmode=disable
+  dir: postgres

@@ -17,3 +17,17 @@ CREATE TABLE iam.users (
 
 -- +migrate Down
 DROP TABLE iam.users;
+
+-- boolean
+-- smallserial
+-- serial
+-- bigserial
+-- smallint
+-- integer
+-- bigint
+-- numeric
+-- decimal
+-- varchar
+-- text
+-- timestamptz
+-- bytea
