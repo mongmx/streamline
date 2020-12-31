@@ -1,10 +1,10 @@
 package test
 
 import (
+	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -14,8 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRegister(t *testing.T) {
-	dsn := "host=127.0.0.1 port=5432 dbname=streamline user= sslmode=disable"
+// EchoEngine is echo router.
+func EchoEngine() *echo.Echo {
+	// Echo instance
+	e := echo.New()
+
+	dsn := "host=127.0.0.1 port=5432 dbname=streamline user=mongmx sslmode=disable"
 	postgresDB, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		log.Fatal(err)
