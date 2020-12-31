@@ -3,9 +3,10 @@ package test
 import (
 	"log"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
-	"github.com/appleboy/gofight/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
@@ -13,12 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// EchoEngine is echo router.
-func EchoEngine() *echo.Echo {
-	// Echo instance
-	e := echo.New()
-
-	dsn := "host=127.0.0.1 port=5432 dbname=streamline user=mongmx sslmode=disable"
+func TestRegister(t *testing.T) {
+	dsn := "host=127.0.0.1 port=5432 dbname=streamline user= sslmode=disable"
 	postgresDB, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -26,21 +23,23 @@ func EchoEngine() *echo.Echo {
 	authRepo := auth.NewRepository(postgresDB, nil)
 	authUseCase := auth.NewUseCase(authRepo)
 	authHandler := auth.NewHandler(authUseCase)
-	defer postgresDB.Close()
+	defer func() {
+		err = postgresDB.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
-	// Routes
-	e.POST("/api/auth/register", authHandler.Register)
+	// Setup
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", strings.NewReader(""))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	return e
-}
-
-func TestRegister(t *testing.T) {
-	r := gofight.New()
-
-	r.POST("/api/auth/register").
-		SetDebug(true).
-		Run(EchoEngine(), func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
-			assert.Equal(t, "success", r.Body.String())
-			assert.Equal(t, http.StatusOK, r.Code)
-		})
+	// Assertions
+	if assert.NoError(t, authHandler.Register(c)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Regexp(t, "success", rec.Body.String())
+	}
 }
