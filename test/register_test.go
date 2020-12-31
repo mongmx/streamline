@@ -2,24 +2,29 @@ package test
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"log"
-	"net/http"
-	"testing"
-
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 	"github.com/mongmx/streamline/domain/auth"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
 )
 
-// EchoEngine is echo router.
-func EchoEngine() *echo.Echo {
-	// Echo instance
-	e := echo.New()
-
-	dsn := "host=127.0.0.1 port=5432 dbname=streamline user=mongmx sslmode=disable"
+func TestRegister(t *testing.T) {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatal(err)
+	}
+	dsn := fmt.Sprintf(
+		"host=127.0.0.1 port=5432 dbname=streamline user=%s sslmode=disable",
+		os.Getenv("POSTGRES_USER"),
+	)
 	postgresDB, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		log.Fatal(err)
