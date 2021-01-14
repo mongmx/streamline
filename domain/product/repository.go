@@ -25,14 +25,15 @@ type Repository interface {
 }
 
 type repo struct {
-	Conn *redis.Pool
-	DB   *sqlx.DB
+	DB        *sqlx.DB
+	RedisPool *redis.Pool
 }
 
 // NewRepository is a factory function of product store.
-func NewRepository(conn *redis.Pool, db *sqlx.DB) Repository {
+func NewRepository(db *sqlx.DB, pool *redis.Pool) Repository {
 	return &repo{
-		Conn: conn,
+		DB:        db,
+		RedisPool: pool,
 	}
 }
 
@@ -42,7 +43,7 @@ func (r *repo) Store(product *Product) error {
 		return err
 	}
 	key := fmt.Sprintf("product-%s", product.ID)
-	c := r.Conn.Get()
+	c := r.RedisPool.Get()
 	_, err = c.Do("SET", key, string(b))
 	return err
 }
@@ -58,7 +59,7 @@ func (r *repo) Save(product *Product) error {
 		return err
 	}
 	key := fmt.Sprintf("product-%s", product.ID)
-	c := r.Conn.Get()
+	c := r.RedisPool.Get()
 	_, err = c.Do("SET", key, string(b))
 	return err
 }
@@ -68,7 +69,7 @@ func (r *repo) GetByID(id uuid.UUID) (Product, error) {
 	defer mu.Unlock()
 
 	key := fmt.Sprintf("product-%s", id)
-	c := r.Conn.Get()
+	c := r.RedisPool.Get()
 	b, err := redis.Bytes(c.Do("GET", key))
 	if err != nil {
 		log.Println("error: ", err)

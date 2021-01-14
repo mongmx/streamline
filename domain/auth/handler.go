@@ -50,25 +50,22 @@ func (h Handler) GetSignin(c echo.Context) error {
 }
 
 func (h Handler) PostSignin(c echo.Context) error {
-	var creds Credentials
-	if err := c.Bind(&creds); err != nil {
+	var cred Credentials
+	if err := c.Bind(&cred); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	user := &User{
 		model: model{
 			CreatedAt: time.Now(),
 		},
-		Email: creds.Username,
+		Email: cred.Email,
 		Auth: &Auth{
 			UserID: 0,
 			Type:   "",
-			Secret: creds.Password,
+			Secret: cred.Password,
 		},
 	}
-	log.Println(user)
-	if err := h.useCase.Signin(user); err != nil {
-		return c.JSON(http.StatusBadGateway, err)
-	}
+	log.Println("signin user", user)
 	sessionToken := uuid.New().String()
 	sess, _ := session.Get("session", c)
 	sess.Options = &sessions.Options{
@@ -77,8 +74,30 @@ func (h Handler) PostSignin(c echo.Context) error {
 		HttpOnly: true,
 	}
 	sess.Values["session_token"] = sessionToken
+	if err := h.useCase.Signin(sessionToken, user); err != nil {
+		return c.JSON(http.StatusBadGateway, err)
+	}
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.JSON(http.StatusOK, "success")
+}
+
+func (h Handler) GetProfile(c echo.Context) error {
+	sess, err := session.Get("session", c)
+	if err != nil {
+		return c.JSON(http.StatusForbidden, err)
+	}
+	log.Println(sess.Values)
+	token, ok := sess.Values["session_token"].(string)
+	if !ok {
+		b := new(bytes.Buffer)
+		t.ViewErrorForbiddenPage(b)
+		return c.Stream(http.StatusForbidden, echo.MIMETextHTMLCharsetUTF8, b)
+	}
+	user, err := h.useCase.Profile(token)
+	if err != nil {
+		return c.JSON(http.StatusForbidden, err)
+	}
+	return c.JSON(http.StatusOK, user)
 }

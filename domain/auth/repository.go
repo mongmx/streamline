@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"encoding/json"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
+	"log"
 )
 
 // Repository - auth store APIs.
@@ -10,7 +12,8 @@ type Repository interface {
 	CreateUser(user *User) (*User, error)
 	CreateAuth(auth *Auth) (*Auth, error)
 	CreateTopic(topic *Topic) (*Topic, error)
-	StoreSessionToken(token string, user *User) error
+	StoreSessionUser(token string, user *User) error
+	GetSessionUser(token string) (User, error)
 }
 
 type repo struct {
@@ -61,11 +64,32 @@ func (r repo) CreateTopic(topic *Topic) (*Topic, error) {
 	return topic, nil
 }
 
-func (r repo) StoreSessionToken(token string, user *User) error {
+func (r repo) StoreSessionUser(token string, user *User) error {
 	c := r.RedisPool.Get()
-	_, err := c.Do("SET", "user--"+token, user)
+	b, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+	_, err = c.Do("SET", "user--"+token, b)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r repo) GetSessionUser(token string) (User, error) {
+	c := r.RedisPool.Get()
+	b, err := redis.Bytes(c.Do("GET", "user--"+token))
+	log.Printf("bytes: %s\n", string(b))
+	if err != nil {
+		log.Println("error: ", err)
+		return User{}, err
+	}
+	var user User
+	if err := json.Unmarshal(b, &user); err != nil {
+		log.Println("error: ", err)
+		return User{}, err
+	}
+	log.Println("user: ", user)
+	return user, nil
 }

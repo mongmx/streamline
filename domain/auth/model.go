@@ -15,10 +15,10 @@ type model struct {
 
 type User struct {
 	model
-	Email  string
-	PlanID int64
-	Auth   *Auth
-	Topic  *Topic
+	Email  string `json:"email"`
+	PlanID int64  `json:"plan_id"`
+	Auth   *Auth  `json:"-"`
+	Topic  *Topic `json:"topic"`
 }
 
 type Auth struct {
@@ -29,11 +29,11 @@ type Auth struct {
 
 type Topic struct {
 	model
-	UserID int64
-	Title  string
+	UserID int64  `json:"-"`
+	Title  string `json:"title"`
 }
 
 type Credentials struct {
 	Password string `json:"password"`
-	Username string `json:"email"`
+	Email    string `json:"email"`
 }

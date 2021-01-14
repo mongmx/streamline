@@ -1,11 +1,10 @@
 package auth
 
-import "github.com/google/uuid"
-
 // UseCase - auth usecase APIs.
 type UseCase interface {
 	Register(user *User) error
-	Signin(user *User) error
+	Signin(sessionToken string, user *User) error
+	Profile(sessionToken string) (User, error)
 }
 
 type useCase struct {
@@ -37,11 +36,18 @@ func (c useCase) Register(user *User) error {
 	return nil
 }
 
-func (c useCase) Signin(user *User) error {
-	sessionToken := uuid.New().String()
-	err := c.repo.StoreSessionToken(sessionToken, user)
+func (c useCase) Signin(sessionToken string, user *User) error {
+	err := c.repo.StoreSessionUser(sessionToken, user)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (c useCase) Profile(sessionToken string) (User, error) {
+	user, err := c.repo.GetSessionUser(sessionToken)
+	if err != nil {
+		return User{}, err
+	}
+	return user, nil
 }
