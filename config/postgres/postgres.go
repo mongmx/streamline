@@ -54,13 +54,19 @@ func MigrateUp(dsn string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	migrations := &migrate.FileMigrationSource{
+	migration := &migrate.FileMigrationSource{
 		Dir: "migrations/postgres",
 	}
-	n, err := migrate.Exec(db, "postgres", migrations, migrate.Up)
+	n, err := migrate.Exec(db, "postgres", migration, migrate.Up)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("Applied %d migrations!\n", n)
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 	return nil
 }

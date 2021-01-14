@@ -6,9 +6,9 @@ CREATE TABLE streamline.plans (
     title VARCHAR NOT NULL DEFAULT '',
     description TEXT NOT NULL DEFAULT '',
     price NUMERIC NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMP WITH TIME ZONE NULL
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ NULL
 );
 INSERT INTO streamline.plans (title, description)
 VALUES ('free', '1 topic'), ('silver', '10 topic'), ('gold', 'unlimited topic');
