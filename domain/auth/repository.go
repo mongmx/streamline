@@ -10,6 +10,7 @@ type Repository interface {
 	CreateUser(user *User) (*User, error)
 	CreateAuth(auth *Auth) (*Auth, error)
 	CreateTopic(topic *Topic) (*Topic, error)
+	StoreSessionToken(token string, user *User) error
 }
 
 type repo struct {
@@ -58,4 +59,13 @@ func (r repo) CreateTopic(topic *Topic) (*Topic, error) {
 		return nil, err
 	}
 	return topic, nil
+}
+
+func (r repo) StoreSessionToken(token string, user *User) error {
+	c := r.RedisPool.Get()
+	_, err := c.Do("SET", "user--"+token, user)
+	if err != nil {
+		return err
+	}
+	return nil
 }

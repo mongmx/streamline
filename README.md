@@ -4,3 +4,6 @@
 - go get golang.org/x/tools/cmd/goimports
 - cp .env.example .env
 - 🛠 change config in .env file
+
+### Resource
+windmill-dashboard

@@ -32,3 +32,8 @@ type Topic struct {
 	UserID int64
 	Title  string
 }
+
+type Credentials struct {
+	Password string `json:"password"`
+	Username string `json:"email"`
+}

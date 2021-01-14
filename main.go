@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/mongmx/streamline/domain/auth"
 	"log"
 	"net/http"
@@ -106,6 +108,31 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//cookieStoreKey, _ := base64.StdEncoding.DecodeString(`NpEPi8pEjKVjLGJ6kYCS+VTCzi6BUuDzU0wrwXyf5uDPArtlofn2AG6aTMiPmN3C909rsEWMNqJqhIVPGP3Exg==`)
+	//sessionStoreKey, _ := base64.StdEncoding.DecodeString(`AbfYwmmt8UCwUuhd9qvfNA9UCuN1cVcKJN1ofbiky6xCyyBj20whe40rJa3Su0WOWLWcPpO1taqJdsEI/65+JA==`)
+	//cookieStore := abclientstate.NewCookieStorer(cookieStoreKey, nil)
+	//cookieStore.HTTPOnly = false
+	//cookieStore.Secure = false
+	//sessionStore := abclientstate.NewSessionStorer("ab_blog", sessionStoreKey, nil)
+	//cStore := sessionStore.Store.(*sessions.CookieStore)
+	//cStore.Options.HttpOnly = false
+	//cStore.Options.Secure = false
+	//cStore.MaxAge(int((30 * 24 * time.Hour) / time.Second))
+	//database := NewMemStorer()
+	//ab := authboss.New()
+	//ab.Config.Storage.Server = database
+	//ab.Config.Storage.SessionState = sessionStore
+	//ab.Config.Storage.CookieState = cookieStore
+	//ab.Config.Paths.Mount = "/authboss"
+	//ab.Config.Paths.RootURL = "http://localhost:8080"
+	//ab.Config.Modules.LogoutMethod = "GET"
+	//ab.Config.Core.ViewRenderer = abrenderer.NewHTML("/auth", "ab_views")
+	//defaults.SetCore(&ab.Config, false, false)
+	//if err := ab.Init(); err != nil {
+	//	panic(err)
+	//}
+
 	e := echo.New()
 	e.HideBanner = true
 	e.Debug, err = strconv.ParseBool(config.Cfg.Debug)
@@ -115,6 +142,7 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 	e.Use(
 		middleware.Logger(),
 		middleware.Recover(),
+		session.Middleware(sessions.NewCookieStore([]byte("secret"))),
 	)
 	p := prometheus.NewPrometheus("echo", nil)
 	p.Use(e)
@@ -136,7 +164,11 @@ func apiInstance(routerMetrics *echo.Echo) *echo.Echo {
 
 	e.Static("/public", "public")
 
+	//e.Any("/authboss/*w", echo.WrapHandler(ab.Config.Core.Router))
+
 	e.POST("/api/auth/register", authHandler.Register)
+	e.GET("/auth/signin", authHandler.GetSignin)
+	e.POST("/auth/signin", authHandler.PostSignin)
 
 	e.GET("/api/customers", customerHandler.List)
 	e.GET("/api/customer/:customerId", customerHandler.View)
