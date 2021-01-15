@@ -2,8 +2,6 @@ package auth
 
 import (
 	"bytes"
-	"github.com/google/uuid"
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/mongmx/streamline/templates/t"
@@ -24,7 +22,13 @@ func NewHandler(useCase UseCase) *Handler {
 	}
 }
 
-func (h Handler) Register(c echo.Context) error {
+func (h Handler) GetRegister(c echo.Context) error {
+	b := new(bytes.Buffer)
+	t.ViewSignupPage(b)
+	return c.Stream(http.StatusOK, echo.MIMETextHTMLCharsetUTF8, b)
+}
+
+func (h Handler) PostRegister(c echo.Context) error {
 	user := &User{
 		Email:  "test@mail.com",
 		PlanID: 1,
@@ -56,29 +60,21 @@ func (h Handler) PostSignin(c echo.Context) error {
 	}
 	user := &User{
 		model: model{
+			ID:        1,
 			CreatedAt: time.Now(),
 		},
 		Email: cred.Email,
-		Auth: &Auth{
-			UserID: 0,
-			Type:   "",
-			Secret: cred.Password,
-		},
 	}
 	log.Println("signin user", user)
-	sessionToken := uuid.New().String()
 	sess, _ := session.Get("session", c)
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   120,
-		HttpOnly: true,
+	token, ok := sess.Values["session_token"].(string)
+	if !ok {
+		b := new(bytes.Buffer)
+		t.ViewErrorForbiddenPage(b)
+		return c.Stream(http.StatusForbidden, echo.MIMETextHTMLCharsetUTF8, b)
 	}
-	sess.Values["session_token"] = sessionToken
-	if err := h.useCase.Signin(sessionToken, user); err != nil {
+	if err := h.useCase.Signin(token, user); err != nil {
 		return c.JSON(http.StatusBadGateway, err)
-	}
-	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.JSON(http.StatusOK, "success")
 }
@@ -95,9 +91,11 @@ func (h Handler) GetProfile(c echo.Context) error {
 		t.ViewErrorForbiddenPage(b)
 		return c.Stream(http.StatusForbidden, echo.MIMETextHTMLCharsetUTF8, b)
 	}
-	user, err := h.useCase.Profile(token)
+	_, err = h.useCase.Profile(token)
 	if err != nil {
 		return c.JSON(http.StatusForbidden, err)
 	}
-	return c.JSON(http.StatusOK, user)
+	b := new(bytes.Buffer)
+	t.ProfilePage(b)
+	return c.Stream(http.StatusForbidden, echo.MIMETextHTMLCharsetUTF8, b)
 }

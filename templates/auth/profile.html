@@ -1,0 +1,21 @@
+<%: func ProfilePage(buffer *bytes.Buffer) %>
+
+<%~ "layout/index.html" %>
+
+<%@ body { %>
+This is profile page
+<div x-data="profilePage()" x-init="mounted()">
+    Your profile
+</div>
+<% } %>
+
+<%@ script { %>
+<script>
+    function profilePage() {
+        return {
+            sseResponse: '',
+            mounted() {}
+        }
+    }
+</script>
+<% } %>

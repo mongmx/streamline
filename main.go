@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo-contrib/session"
+	authMiddleware "github.com/mongmx/streamline/config/middleware/auth"
 	"github.com/mongmx/streamline/domain/auth"
 	"log"
 	"net/http"
@@ -117,7 +118,8 @@ func appInstance(routerMetrics *echo.Echo) *echo.Echo {
 	e.Use(
 		middleware.Logger(),
 		middleware.Recover(),
-		session.Middleware(sessions.NewCookieStore([]byte("secret"))),
+		session.Middleware(sessions.NewCookieStore([]byte("35f925adc9e24bb28de2cb2dce3e797023a30f9d"))),
+		authMiddleware.Auth(redisPool),
 	)
 	p := prometheus.NewPrometheus("echo", nil)
 	p.Use(e)
