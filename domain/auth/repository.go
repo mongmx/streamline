@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jmoiron/sqlx"
-	"log"
 )
 
 // Repository - auth store APIs.
@@ -80,16 +79,12 @@ func (r repo) StoreSessionUser(token string, user *User) error {
 func (r repo) GetSessionUser(token string) (User, error) {
 	c := r.RedisPool.Get()
 	b, err := redis.Bytes(c.Do("GET", "user--"+token))
-	log.Printf("bytes: %s\n", string(b))
 	if err != nil {
-		log.Println("error: ", err)
 		return User{}, err
 	}
 	var user User
 	if err := json.Unmarshal(b, &user); err != nil {
-		log.Println("error: ", err)
 		return User{}, err
 	}
-	log.Println("user: ", user)
 	return user, nil
 }

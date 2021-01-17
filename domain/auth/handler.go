@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/mongmx/streamline/templates/t"
-	"log"
 	"net/http"
 	"time"
 )
@@ -65,7 +64,7 @@ func (h Handler) PostSignin(c echo.Context) error {
 		},
 		Email: cred.Email,
 	}
-	log.Println("signin user", user)
+	c.Logger().Printf("signin user %v", user)
 	sess, _ := session.Get("session", c)
 	token, ok := sess.Values["session_token"].(string)
 	if !ok {
@@ -84,7 +83,7 @@ func (h Handler) GetProfile(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusForbidden, err)
 	}
-	log.Println(sess.Values)
+	c.Logger().Printf("%v", sess.Values)
 	token, ok := sess.Values["session_token"].(string)
 	if !ok {
 		b := new(bytes.Buffer)
