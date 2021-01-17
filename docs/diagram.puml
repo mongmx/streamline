@@ -1,0 +1,40 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+
+' =================
+' == Declaration ==
+' =================
+
+[Component 1]
+
+node "Node 1" {
+    package "Package 1" #Orange {
+        [Component 4]
+        [Component 3]
+    }
+    [Component 2]
+}
+
+
+
+' ====================
+' == Implementation ==
+' ====================
+
+
+node "Node 1" {
+    [Component 2] .[#Green]-> [Component 4]
+    [Component 3] <-left-> [Component 4]
+    [Component 4] -- [Component 1]
+}
+
+legend
+    |= Role |= Permission |= Description |
+    | Owner | Invite Agent | เชิญตัวแทน |
+    | Admin | Invite Agent | เชิญตัวแทน |
+    | Agent | Invite Agent | เชิญตัวแทน |
+    | Member | Invite Agent | เชิญตัวแทน |
+endlegend
+
+@enduml

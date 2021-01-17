@@ -5,8 +5,8 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo-contrib/session"
-	authMiddleware "github.com/mongmx/streamline/config/middleware/auth"
 	"github.com/mongmx/streamline/domain/auth"
+	authMiddleware "github.com/mongmx/streamline/middleware/auth"
 	"log"
 	"net/http"
 	"os"
@@ -92,6 +92,9 @@ func apiDocInstance() *echo.Echo {
 
 func metricsInstance() *echo.Echo {
 	e := echo.New()
+	e.GET("/metrics", func(c echo.Context) error {
+		return echo.ErrNotFound
+	})
 	return e
 }
 
@@ -101,14 +104,11 @@ func appInstance(routerMetrics *echo.Echo) *echo.Echo {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = postgres.MigrateUp(dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
 	redisPool, err := redis.NewRedis(config.Cfg.Redis)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	e := echo.New()
 	e.HideBanner = true
 	e.Debug, err = strconv.ParseBool(config.Cfg.Debug)
@@ -121,9 +121,11 @@ func appInstance(routerMetrics *echo.Echo) *echo.Echo {
 		session.Middleware(sessions.NewCookieStore([]byte("35f925adc9e24bb28de2cb2dce3e797023a30f9d"))),
 		authMiddleware.Auth(redisPool),
 	)
+
 	p := prometheus.NewPrometheus("echo", nil)
 	p.Use(e)
 	p.SetMetricsPath(routerMetrics)
+
 	authRepo := auth.NewRepository(postgresDB, redisPool)
 	authUseCase := auth.NewUseCase(authRepo)
 	productRepo := product.NewRepository(postgresDB, redisPool)
@@ -136,11 +138,6 @@ func appInstance(routerMetrics *echo.Echo) *echo.Echo {
 	admin.Router(e)
 	customer.Router(e, customerUseCase)
 	product.Router(e, productUseCase)
-
-	e.GET("/metrics", func(c echo.Context) error {
-		//e.Logger.Debug(e.Debug)
-		return echo.ErrNotFound
-	})
 
 	return e
 }

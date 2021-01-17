@@ -1,10 +1,7 @@
 package postgres
 
 import (
-	"database/sql"
 	"fmt"
-	migrate "github.com/rubenv/sql-migrate"
-	"log"
 	"os"
 )
 
@@ -46,27 +43,4 @@ func NewPostgres(cfg Config) string {
 		"host=%s port=%s dbname=%s user=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.DBName, cfg.User, cfg.Pass, cfg.SSL,
 	)
-}
-
-// MigrateUp call migration up
-func MigrateUp(dsn string) error {
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	migration := &migrate.FileMigrationSource{
-		Dir: "migrations/postgres",
-	}
-	n, err := migrate.Exec(db, "postgres", migration, migrate.Up)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Applied %d migrations!\n", n)
-	defer func() {
-		err = db.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-	return nil
 }
