@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/gorilla/sessions"
+	"github.com/boj/redistore"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/mongmx/streamline/domain/auth"
@@ -118,9 +118,16 @@ func appInstance(routerMetrics *echo.Echo) *echo.Echo {
 	e.Use(
 		middleware.Logger(),
 		middleware.Recover(),
-		session.Middleware(sessions.NewCookieStore([]byte("35f925adc9e24bb28de2cb2dce3e797023a30f9d"))),
-		authMiddleware.Auth(redisPool),
 	)
+
+	store, err := redistore.NewRediStore(10, "tcp", ":6379", "", []byte("35f925adc9e24bb28de2cb2dce3e797023a30f9d"))
+	if err != nil {
+		panic(err)
+	}
+	//defer store.Close()
+	e.Use(session.Middleware(store))
+	//e.Use(session.Middleware(sessions.NewCookieStore([]byte("35f925adc9e24bb28de2cb2dce3e797023a30f9d"))))
+	e.Use(authMiddleware.Auth(redisPool))
 
 	p := prometheus.NewPrometheus("echo", nil)
 	p.Use(e)
